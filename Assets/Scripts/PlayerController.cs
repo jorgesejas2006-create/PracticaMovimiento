@@ -3,39 +3,102 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] private float playerSpeed = 3.0f;
-    [SerializeField] private float jumpForce = 10.0f;
-    private PlayerInput input;
+    [SerializeField] private float playerSpeed = 5.0f;
+    [SerializeField] private float jumpForce = 7.0f;
+
+    [Header("Jugador")]
+    [SerializeField] private int numeroJugador = 1;
+
     private Rigidbody rB;
+
     void Start()
     {
-        input = GetComponent<PlayerInput>();
         rB = GetComponent<Rigidbody>();
     }
 
-    // Update is called once per frame
     void Update()
     {
-        MovePlayer();
+        Saltar();
     }
-    private void MovePlayer()
+
+    void FixedUpdate()
     {
-        Vector2 move = input.actions["Move"].ReadValue<Vector2>();
-        if (gameObject.name.Equals("PlayerCapsule"))
+        Mover();
+    }
+
+    private void Mover()
+    {
+        Vector2 movimiento = Vector2.zero;
+        if (numeroJugador == 1)
         {
-            transform.Translate(new Vector3(move.x, 0, move.y) * playerSpeed * Time.deltaTime);
+            if (Keyboard.current.wKey.isPressed)
+                movimiento.y += 1;
+
+            if (Keyboard.current.sKey.isPressed)
+                movimiento.y -= 1;
+
+            if (Keyboard.current.aKey.isPressed)
+                movimiento.x -= 1;
+
+            if (Keyboard.current.dKey.isPressed)
+                movimiento.x += 1;
         }
-        else
+
+        if (numeroJugador == 2)
         {
-            Vector3 physicsMove = new Vector3(move.x, 0, move.y).normalized * playerSpeed * Time.deltaTime;
-            rB.AddForce(physicsMove, ForceMode.Impulse);
+            if (Keyboard.current.upArrowKey.isPressed)
+                movimiento.y += 1;
+
+            if (Keyboard.current.downArrowKey.isPressed)
+                movimiento.y -= 1;
+
+            if (Keyboard.current.leftArrowKey.isPressed)
+                movimiento.x -= 1;
+
+            if (Keyboard.current.rightArrowKey.isPressed)
+                movimiento.x += 1;
+        }
+
+        Vector3 direccion = new Vector3(
+            movimiento.x,
+            0,
+            movimiento.y
+        ).normalized;
+
+        rB.linearVelocity = new Vector3(
+            direccion.x * playerSpeed,
+            rB.linearVelocity.y,
+            direccion.z * playerSpeed
+        );
+    }
+
+    private void Saltar()
+    {
+        bool presionoSalto = false;
+
+        // Jugador 1 salta con ESPACIO
+        if (numeroJugador == 1)
+        {
+            presionoSalto = Keyboard.current.spaceKey.wasPressedThisFrame;
+        }
+
+        // Jugador 2 salta con ENTER
+        if (numeroJugador == 2)
+        {
+            presionoSalto = Keyboard.current.enterKey.wasPressedThisFrame;
+        }
+
+        if (presionoSalto && EstaEnSuelo())
+        {
+            rB.AddForce(
+                Vector3.up * jumpForce,
+                ForceMode.Impulse
+            );
         }
     }
-    public void Jump(InputAction.CallbackContext callbackContext)
+
+    private bool EstaEnSuelo()
     {
-        if (callbackContext.performed && Mathf.Abs(rB.linearVelocity.y)<0.01)
-        {
-            rB.AddForce(Vector3.up*jumpForce,ForceMode.Impulse);
-        }
-    }    
+        return Mathf.Abs(rB.linearVelocity.y) < 0.05f;
+    }
 }
