@@ -8,17 +8,21 @@ public class PlayerController : MonoBehaviour
 
     [Header("Jugador")]
     [SerializeField] private int numeroJugador = 1;
+    [SerializeField] private AudioClip sonidoSalto;
 
+    private AudioSource audioSource;
     private Rigidbody rB;
 
     void Start()
     {
         rB = GetComponent<Rigidbody>();
+        audioSource = GetComponent<AudioSource>();
     }
 
     void Update()
     {
         Saltar();
+
     }
 
     void FixedUpdate()
@@ -76,13 +80,11 @@ public class PlayerController : MonoBehaviour
     {
         bool presionoSalto = false;
 
-        // Jugador 1 salta con ESPACIO
         if (numeroJugador == 1)
         {
             presionoSalto = Keyboard.current.spaceKey.wasPressedThisFrame;
         }
 
-        // Jugador 2 salta con ENTER
         if (numeroJugador == 2)
         {
             presionoSalto = Keyboard.current.enterKey.wasPressedThisFrame;
@@ -94,6 +96,8 @@ public class PlayerController : MonoBehaviour
                 Vector3.up * jumpForce,
                 ForceMode.Impulse
             );
+
+            audioSource.PlayOneShot(sonidoSalto);
         }
     }
 
