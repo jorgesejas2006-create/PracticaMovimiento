@@ -13,61 +13,48 @@ public class PlayerController : MonoBehaviour
     private AudioSource audioSource;
     private Rigidbody rB;
 
-    void Start()
+    public int NumeroJugador => numeroJugador;
+
+    private void Start()
     {
         rB = GetComponent<Rigidbody>();
         audioSource = GetComponent<AudioSource>();
     }
 
-    void Update()
+    private void Update()
     {
+        if (!GameBootstrap.JuegoActivo) return;
         Saltar();
-
     }
 
-    void FixedUpdate()
+    private void FixedUpdate()
     {
+        if (!GameBootstrap.JuegoActivo || rB == null) return;
         Mover();
     }
 
     private void Mover()
     {
+        if (Keyboard.current == null) return;
+
         Vector2 movimiento = Vector2.zero;
+
         if (numeroJugador == 1)
         {
-            if (Keyboard.current.wKey.isPressed)
-                movimiento.y += 1;
-
-            if (Keyboard.current.sKey.isPressed)
-                movimiento.y -= 1;
-
-            if (Keyboard.current.aKey.isPressed)
-                movimiento.x -= 1;
-
-            if (Keyboard.current.dKey.isPressed)
-                movimiento.x += 1;
+            if (Keyboard.current.wKey.isPressed) movimiento.y += 1;
+            if (Keyboard.current.sKey.isPressed) movimiento.y -= 1;
+            if (Keyboard.current.aKey.isPressed) movimiento.x -= 1;
+            if (Keyboard.current.dKey.isPressed) movimiento.x += 1;
         }
-
-        if (numeroJugador == 2)
+        else if (numeroJugador == 2)
         {
-            if (Keyboard.current.upArrowKey.isPressed)
-                movimiento.y += 1;
-
-            if (Keyboard.current.downArrowKey.isPressed)
-                movimiento.y -= 1;
-
-            if (Keyboard.current.leftArrowKey.isPressed)
-                movimiento.x -= 1;
-
-            if (Keyboard.current.rightArrowKey.isPressed)
-                movimiento.x += 1;
+            if (Keyboard.current.upArrowKey.isPressed) movimiento.y += 1;
+            if (Keyboard.current.downArrowKey.isPressed) movimiento.y -= 1;
+            if (Keyboard.current.leftArrowKey.isPressed) movimiento.x -= 1;
+            if (Keyboard.current.rightArrowKey.isPressed) movimiento.x += 1;
         }
 
-        Vector3 direccion = new Vector3(
-            movimiento.x,
-            0,
-            movimiento.y
-        ).normalized;
+        Vector3 direccion = new Vector3(movimiento.x, 0, movimiento.y).normalized;
 
         rB.linearVelocity = new Vector3(
             direccion.x * playerSpeed,
@@ -78,31 +65,23 @@ public class PlayerController : MonoBehaviour
 
     private void Saltar()
     {
-        bool presionoSalto = false;
+        if (Keyboard.current == null || rB == null) return;
 
-        if (numeroJugador == 1)
-        {
-            presionoSalto = Keyboard.current.spaceKey.wasPressedThisFrame;
-        }
-
-        if (numeroJugador == 2)
-        {
-            presionoSalto = Keyboard.current.enterKey.wasPressedThisFrame;
-        }
+        bool presionoSalto = numeroJugador == 1
+            ? Keyboard.current.spaceKey.wasPressedThisFrame
+            : Keyboard.current.enterKey.wasPressedThisFrame;
 
         if (presionoSalto && EstaEnSuelo())
         {
-            rB.AddForce(
-                Vector3.up * jumpForce,
-                ForceMode.Impulse
-            );
+            rB.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
 
-            audioSource.PlayOneShot(sonidoSalto);
+            if (audioSource != null && sonidoSalto != null)
+                audioSource.PlayOneShot(sonidoSalto);
         }
     }
 
     private bool EstaEnSuelo()
     {
-        return Mathf.Abs(rB.linearVelocity.y) < 0.05f;
+        return Mathf.Abs(rB.linearVelocity.y) < 0.08f;
     }
 }
